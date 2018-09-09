@@ -107,7 +107,7 @@ client.on('message', async (message) => {
       break;
 
     case 'weer':
-      cat(message);
+      weer(message);
       break;
 
     case 'nummerfeitje':
