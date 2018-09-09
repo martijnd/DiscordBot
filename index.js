@@ -17,6 +17,7 @@ const commandList = (message) => {
     .setColor('#FF00FF')
     .setTitle('Overzicht')
     .addField('!play <Youtube-URL>', 'Speel een liedje van Youtube.')
+    .addField('!oof', 'oof')
     .addField('!weer <Stad>', 'Toont het huidige weer in de opgegeven stad.')
     .addField('!cat', 'Cute')
     .addField('!nummerfeitje <nummer>', 'Willekeurig feitje over het opgegeven nummer');
@@ -25,7 +26,7 @@ const commandList = (message) => {
 
 const play = (message) => {
   if (message.channel.type !== 'text') return;
-  console.log(args);
+
   const { voiceChannel } = message.member;
 
   if (!voiceChannel) {
@@ -48,12 +49,22 @@ const cat = (message) => {
     .catch(err => console.log(err));
 };
 
-const kick = (message) => {
-  // grab the "first" mentioned user from the message
-  // this will return a `User` object, just like `message.author`
-  const taggedUser = message.mentions.users.first();
+const oof = (message) => {
+  if (message.channel.type !== 'text') return;
 
-  message.channel.send(`You wanted to kick: ${taggedUser.username}`);
+  const { voiceChannel } = message.member;
+
+  if (!voiceChannel) {
+    message.reply('Je moet wel in een spraakkanaal zitten!');
+    return;
+  }
+
+  voiceChannel.join().then((connection) => {
+    const stream = ytdl('https://youtu.be/f49ELvryhao', { filter: 'audioonly' });
+    const dispatcher = connection.playStream(stream);
+
+    dispatcher.on('end', () => voiceChannel.leave());
+  });
 };
 
 const weer = (message) => {
@@ -98,8 +109,8 @@ client.on('message', async (message) => {
       play(message);
       break;
 
-    case 'kick':
-      kick(message);
+    case 'oof':
+      oof(message);
       break;
 
     case 'poes':
