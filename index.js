@@ -89,39 +89,34 @@ client.on('message', async (message) => {
   args = message.content.slice(prefix.length).split(' ');
   command = args.shift().toLowerCase();
 
-  // Play Youtube
-  if (command === 'commands') {
-    commandList(message);
-  }
+  switch (command) {
+    case 'commands':
+      commandList(message);
+      break;
 
-  // Play Youtube
-  if (command === 'play') {
-    play(message);
-  }
+    case 'play':
+      play(message);
+      break;
 
-  // Kick
-  if (command === 'kick') {
-    kick(message);
-  }
+    case 'kick':
+      kick(message);
+      break;
 
-  // Random kat
-  if (command === 'cat') {
-    cat(message);
-  }
+    case 'poes':
+      cat(message);
+      break;
 
-  // Weer API
-  if (command === 'weer') {
-    weer(message);
-  }
+    case 'weer':
+      cat(message);
+      break;
 
-  // Nummerfeitje
-  if (command === 'nummerfeitje') {
-    nummerfeitje(message);
-  }
+    case 'nummerfeitje':
+      nummerfeitje(message);
+      break;
 
-  // Ping
-  if (command === 'ping') {
-    message.channel.send('pong');
+    default:
+      message.channel.send('pong');
+      break;
   }
 });
 
