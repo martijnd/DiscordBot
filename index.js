@@ -101,7 +101,7 @@ client.on('message', async (message) => {
   command = args.shift().toLowerCase();
 
   switch (command) {
-    case 'commands':
+    case 'cmds':
       commandList(message);
       break;
 
