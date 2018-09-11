@@ -22,23 +22,23 @@ client.on('message', async (message) => {
       break;
 
     case 'play':
-      cmd.play(message);
+      cmd.commands.play.run(message);
       break;
 
     case 'oof':
-      cmd.oof(message);
+      cmd.commands.oof.run(message);
       break;
 
     case 'poes':
-      cmd.cat(message);
+      cmd.commands.cat.run(message);
       break;
 
     case 'weer':
-      cmd.weer(args, message);
+      cmd.commands.weer.run(args, message);
       break;
 
     case 'nummerfeitje':
-      cmd.nummerfeitje(args, message);
+      cmd.commands.nummerfeitje.run(args, message);
       break;
 
     default:
