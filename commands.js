@@ -4,12 +4,10 @@ const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
 const fetch = require('node-fetch');
 
-let args;
-
 const commands = {
   play: {
     description: 'Speel een liedje van Youtube.',
-    run: (message) => {
+    run: (message, args) => {
       if (message.channel.type !== 'text') return;
 
       const { voiceChannel } = message.member;
@@ -58,9 +56,9 @@ const commands = {
   },
   weer: {
     description: 'Toont het huidige weer in de opgegeven stad.',
-    run: (message, argss) => {
+    run: (message, args) => {
       const { WEER_API_URL: url } = process.env;
-      const locatie = argss[1] !== undefined ? `${argss[0]} ${argss[1]}` : argss[0];
+      const locatie = args[1] !== undefined ? `${args[0]} ${args[1]}` : args[0];
       const embed = response => new Discord.RichEmbed()
         .setColor('#FFFF00')
         .setTitle(`Het weer in ${response.plaats}`)
@@ -80,11 +78,15 @@ const commands = {
   },
   nummerfeitje: {
     description: 'Willekeurig feitje over het opgegeven nummer.',
-    run: (message, argss) => {
-      const url = `http://numbersapi.com/${argss[0]}`;
-      fetch(url)
-        .then(res => res.text())
-        .then(body => message.channel.send(body));
+    run: (message, args) => {
+      if (args[0]) {
+        const url = `http://numbersapi.com/${args[0]}`;
+        fetch(url)
+          .then(res => res.text())
+          .then(body => message.channel.send(body));
+      } else {
+        message.channel.send('Je moet wel een nummer meesturen!');
+      }
     },
   },
 };

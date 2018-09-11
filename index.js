@@ -1,6 +1,6 @@
 require('dotenv').config();
 const Discord = require('discord.js');
-const cmd = require('./commands');
+const { commands } = require('./commands');
 
 const client = new Discord.Client();
 const prefix = '!';
@@ -18,27 +18,52 @@ client.on('message', async (message) => {
 
   switch (command) {
     case 'cmds':
-      cmd.commandList(message);
+      try {
+        commands.commandList(message);
+      } catch (error) {
+        console.log(error);
+      }
       break;
 
     case 'play':
-      cmd.commands.play.run(message);
+      try {
+        commands.play.run(message, args);
+      } catch (error) {
+        console.log(error);
+      }
       break;
 
     case 'oof':
-      cmd.commands.oof.run(message);
+      try {
+        commands.oof.run(message);
+      } catch (error) {
+        console.log(error);
+      }
       break;
 
     case 'poes':
-      cmd.commands.cat.run(message);
+      try {
+        commands.cat.run(message);
+      } catch (error) {
+        console.log(error);
+      }
       break;
 
     case 'weer':
-      cmd.commands.weer.run(args, message);
+      try {
+        commands.weer.run(message, args);
+      } catch (error) {
+        console.log(error);
+      }
       break;
 
     case 'nummerfeitje':
-      cmd.commands.nummerfeitje.run(args, message);
+      try {
+        commands.nummerfeitje.run(message, args);
+      } catch (error) {
+        console.log(error);
+      }
+
       break;
 
     default:
