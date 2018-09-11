@@ -38,7 +38,7 @@ client.on('message', async (message) => {
       break;
 
     case 'nummerfeitje':
-      cmd.nummerfeitje(message);
+      cmd.nummerfeitje(args, message);
       break;
 
     default:

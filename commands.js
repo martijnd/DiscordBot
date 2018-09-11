@@ -13,7 +13,7 @@ const commandList = (message) => {
     .addField('!play <Youtube-URL>', 'Speel een liedje van Youtube.')
     .addField('!oof', 'oof')
     .addField('!weer <Stad>', 'Toont het huidige weer in de opgegeven stad.')
-    .addField('!cat', 'Cute')
+    .addField('!poes', 'Cute')
     .addField('!nummerfeitje <nummer>', 'Willekeurig feitje over het opgegeven nummer');
   message.channel.send(embed);
 };
@@ -81,8 +81,8 @@ const weer = (argss, message) => {
     .catch(err => console.log(err));
 };
 
-const nummerfeitje = (message) => {
-  const url = `http://numbersapi.com/${args[0]}`;
+const nummerfeitje = (argss, message) => {
+  const url = `http://numbersapi.com/${argss[0]}`;
   fetch(url)
     .then(res => res.text())
     .then(body => message.channel.send(body));
