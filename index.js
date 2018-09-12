@@ -1,11 +1,26 @@
 require('dotenv').config();
+const fs = require('fs');
 const Discord = require('discord.js');
-const { commands } = require('./commands');
 
 const client = new Discord.Client();
-const prefix = '!';
+client.commands = new Discord.Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+commandFiles.push(fs.readdirSync('.').filter(file => file.endsWith('cmds.js')));
 
 let command;
+
+for (const file of commandFiles) {
+  if (file[0] === 'cmds.js') {
+    command = require(`./${file[0]}`);
+  } else {
+    command = require(`./commands/${file}`);
+  }
+
+  client.commands.set(command.name, command);
+}
+
+const prefix = '!';
+
 let args;
 
 client.on('ready', () => console.log(`Logged in as ${client.user.tag}!`));
@@ -16,59 +31,18 @@ client.on('message', async (message) => {
   args = message.content.slice(prefix.length).split(' ');
   command = args.shift().toLowerCase();
 
-  switch (command) {
-    case 'cmds':
-      try {
-        commands.commandList(message);
-      } catch (error) {
-        console.log(error);
-      }
-      break;
+  if (command === 'cmds') {
+    client.commands.get(command).run(message, args);
+    return;
+  }
 
-    case 'play':
-      try {
-        commands.play.run(message, args);
-      } catch (error) {
-        console.log(error);
-      }
-      break;
+  if (!client.commands.has(command)) return;
 
-    case 'oof':
-      try {
-        commands.oof.run(message);
-      } catch (error) {
-        console.log(error);
-      }
-      break;
-
-    case 'poes':
-      try {
-        commands.cat.run(message);
-      } catch (error) {
-        console.log(error);
-      }
-      break;
-
-    case 'weer':
-      try {
-        commands.weer.run(message, args);
-      } catch (error) {
-        console.log(error);
-      }
-      break;
-
-    case 'nummerfeitje':
-      try {
-        commands.nummerfeitje.run(message, args);
-      } catch (error) {
-        console.log(error);
-      }
-
-      break;
-
-    default:
-      message.channel.send('pong');
-      break;
+  try {
+    client.commands.get(command).run(message, args);
+  } catch (error) {
+    console.error(error);
+    message.reply('there was an error trying to execute that command!');
   }
 });
 
