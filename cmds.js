@@ -5,7 +5,7 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 
 module.exports = {
   name: 'cmds',
-  run: (message, args) => {
+  run: (message) => {
     const embed = new Discord.RichEmbed().setColor('#FF00FF').setTitle('Overzicht');
     for (const file of commandFiles) {
       const command = require(`./commands/${file}`);
