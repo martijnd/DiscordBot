@@ -1,11 +1,26 @@
 require('dotenv').config();
+const fs = require('fs');
 const Discord = require('discord.js');
-const cmd = require('./commands');
 
 const client = new Discord.Client();
-const prefix = '!';
+client.commands = new Discord.Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+commandFiles.push(fs.readdirSync('.').filter(file => file.endsWith('cmds.js')));
 
 let command;
+
+for (const file of commandFiles) {
+  if (file[0] === 'cmds.js') {
+    command = require(`./${file[0]}`);
+  } else {
+    command = require(`./commands/${file}`);
+  }
+
+  client.commands.set(command.name, command);
+}
+
+const prefix = '!';
+
 let args;
 
 client.on('ready', () => console.log(`Logged in as ${client.user.tag}!`));
@@ -16,34 +31,18 @@ client.on('message', async (message) => {
   args = message.content.slice(prefix.length).split(' ');
   command = args.shift().toLowerCase();
 
-  switch (command) {
-    case 'cmds':
-      cmd.commandList(message);
-      break;
+  if (command === 'cmds') {
+    client.commands.get(command).run(message, args);
+    return;
+  }
 
-    case 'play':
-      cmd.play(message);
-      break;
+  if (!client.commands.has(command)) return;
 
-    case 'oof':
-      cmd.oof(message);
-      break;
-
-    case 'poes':
-      cmd.cat(message);
-      break;
-
-    case 'weer':
-      cmd.weer(args, message);
-      break;
-
-    case 'nummerfeitje':
-      cmd.nummerfeitje(args, message);
-      break;
-
-    default:
-      message.channel.send('pong');
-      break;
+  try {
+    client.commands.get(command).run(message, args);
+  } catch (error) {
+    console.error(error);
+    message.reply('there was an error trying to execute that command!');
   }
 });
 
