@@ -88,6 +88,18 @@ const nummerfeitje = (argss, message) => {
     .then(body => message.channel.send(body));
 };
 
+const commands = {
+  nummerfeitje: {
+    description: 'Willekeurig feitje over het opgegeven nummer',
+    exec: (argss, message) => {
+      const url = `http://numbersapi.com/${argss[0]}`;
+      fetch(url)
+        .then(res => res.text())
+        .then(body => message.channel.send(body));
+    },
+  },
+};
+
 module.exports = {
   commandList,
   play,
@@ -95,4 +107,5 @@ module.exports = {
   weer,
   oof,
   nummerfeitje,
+  commands,
 };
