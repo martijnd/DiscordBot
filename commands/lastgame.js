@@ -13,12 +13,14 @@ const gameTypes = {
 
 const embed = data => new Discord.RichEmbed()
   .setColor(data.color)
-  .setTitle(data.gameType)
+  .setTitle(data.type)
 // .setAuthor(summonerName)
   .setThumbnail(
     `http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/${data.parsed.champion}.png`,
   )
+  .addField('Duration', `${data.duration}`)
   .addField('Champion', `${data.parsed.champion}`)
+  .addField('K/D/A', `${data.stats.kills} /  ${data.stats.deaths} / ${data.stats.assists}`)
   .addField('Result', `${data.result}`)
   .setTimestamp(data.parsed.timestamp);
 
@@ -42,6 +44,7 @@ module.exports = {
     const gameType = getGameType(matchInfo);
     const parsedMatchData = getParsedMatchData(matchInfo);
     const matchData = await getMatchData(parsedMatchData.gameId);
+    const gameDuration = getGameDuration(matchData);
     const participantId = getParticipantId(accountId, matchData);
     const teamId = getTeamId(participantId, matchData);
     const matchResult = getMatchResult(teamId, matchData);
@@ -52,8 +55,9 @@ module.exports = {
       parsed: parsedMatchData,
       result: matchResult,
       stats: matchStats,
+      type: gameType,
+      duration: gameDuration,
       color,
-      gameType,
     };
 
     message.channel.send(embed(data));
@@ -73,6 +77,14 @@ const getMatchInfo = async (accountId) => {
 const getGameType = matchInfo => gameTypes[matchInfo[0].queue];
 
 const getMatchData = async gameId => await api.get('euw1', 'match.getMatch', gameId);
+
+const getGameDuration = gameData => `${
+  Math.floor(gameData.gameDuration / 60) < 10
+    ? `0${Math.floor(gameData.gameDuration / 60)}`
+    : Math.floor(gameData.gameDuration / 60)
+}:${
+  gameData.gameDuration % 60 < 10 ? `0${gameData.gameDuration % 60}` : gameData.gameDuration % 60
+}`;
 
 const getParticipantId = (accountId, matchData) => matchData.participantIdentities.find(
   participantIdentities => participantIdentities.player.accountId === accountId,
