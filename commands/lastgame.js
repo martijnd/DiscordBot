@@ -3,14 +3,21 @@ const TeemoJS = require('teemojs');
 const championData = require('../champion.json');
 
 const api = TeemoJS(process.env.RIOT_API_KEY);
+const gameTypes = {
+  400: 'Normal Draft Pick',
+  420: 'Ranked Solo',
+  430: 'Normal Blind Pick',
+  440: 'Ranked Flex',
+  450: 'ARAM',
+};
 
-const embed = match => new Discord.RichEmbed()
+const embed = (summonerName, match, matchInfo) => new Discord.RichEmbed()
   .setColor('#1d2439')
-  .setTitle(match.word)
-  .addField('Definitie', `${match.definition}`)
-  .addField('Voorbeeld', `${match.example}`)
-  .addField('Link', `${match.permalink}`)
-  .setTimestamp();
+  .setTitle(gameTypes[match.queue])
+// .setAuthor(summonerName)
+  .addField('Champion', `${match.champion}`)
+  .addField('Result', `${matchInfo}`)
+  .setTimestamp(match.timestamp);
 
 const championIds = [];
 
@@ -28,9 +35,10 @@ module.exports = {
     }
     const summonerName = args[0];
     const accountId = await getAccountId(summonerName);
-    const match = await getMatchData(accountId);
+    const match = await getMatchInfo(accountId);
     const result = await parseMatchData(match);
-    message.channel.send(embed(result));
+    const matchInfo = await getMatchResult(result.gameId, accountId);
+    message.channel.send(embed(summonerName, result, matchInfo));
   },
 };
 
@@ -43,26 +51,33 @@ const getAccountId = async (userName) => {
   } catch (error) {
     console.error(error);
   }
-  console.log(`${data.name}'s summoner id is ${data.id}.`);
+  console.log(`${data.name}'s summoner id is ${data.accountId}.`);
 
   return data.accountId;
 };
 
-const getMatchData = async (accountId) => {
+const getMatchInfo = async (accountId) => {
   try {
     const data = await api.get('euw1', 'match.getMatchlist', accountId);
-    console.log(data.matches.slice(Math.min(data.matches.length - 1, 1)));
-
-    return data.matches.slice(Math.min(data.matches.length - 1, 1));
+    return data.matches;
   } catch (error) {
     console.error(error);
   }
 };
 
+const getMatchResult = async (gameId, accountId) => {
+  const gameData = await api.get('euw1', 'match.getMatch', gameId);
+
+  const participantId = gameData.participantIdentities.find(
+    participantIdentities => participantIdentities.player.accountId === accountId,
+  ).participantId;
+  const teamId = gameData.participants.find(participant => participant.participantId === 7).teamId;
+  const result = gameData.teams.find(team => team.teamId === teamId).win;
+  return result === 'Fail' ? 'Lost' : result;
+};
+
 const parseMatchData = async (matchData) => {
-  matchData = Object.keys(matchData)
-    .map(k => matchData[k])
-    .reverse();
+  matchData = Object.keys(matchData).map(k => matchData[k]);
 
   const matchResult = [];
 
@@ -73,5 +88,5 @@ const parseMatchData = async (matchData) => {
     matchResult.push(match);
   }
 
-  return matchResult;
+  return matchResult[0];
 };
