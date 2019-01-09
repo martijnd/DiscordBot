@@ -11,13 +11,16 @@ const gameTypes = {
   450: 'ARAM',
 };
 
-const embed = (summonerName, match, matchInfo) => new Discord.RichEmbed()
-  .setColor('#1d2439')
-  .setTitle(gameTypes[match.queue])
+const embed = data => new Discord.RichEmbed()
+  .setColor(data.color)
+  .setTitle(data.gameType)
 // .setAuthor(summonerName)
-  .addField('Champion', `${match.champion}`)
-  .addField('Result', `${matchInfo}`)
-  .setTimestamp(match.timestamp);
+  .setThumbnail(
+    `http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/${data.parsed.champion}.png`,
+  )
+  .addField('Champion', `${data.parsed.champion}`)
+  .addField('Result', `${data.result}`)
+  .setTimestamp(data.parsed.timestamp);
 
 const championIds = [];
 
@@ -33,50 +36,60 @@ module.exports = {
     if (!args[0]) {
       message.channel.send('Vul een summoner name in.');
     }
-    const summonerName = args[0];
+    const summonerName = args.join('');
     const accountId = await getAccountId(summonerName);
-    const match = await getMatchInfo(accountId);
-    const result = await parseMatchData(match);
-    const matchInfo = await getMatchResult(result.gameId, accountId);
-    message.channel.send(embed(summonerName, result, matchInfo));
+    const matchInfo = await getMatchInfo(accountId);
+    const gameType = getGameType(matchInfo);
+    const parsedMatchData = getParsedMatchData(matchInfo);
+    const matchData = await getMatchData(parsedMatchData.gameId);
+    const participantId = getParticipantId(accountId, matchData);
+    const teamId = getTeamId(participantId, matchData);
+    const matchResult = getMatchResult(teamId, matchData);
+    const matchStats = getMatchStats(participantId, matchData);
+    const color = getRichEmbedColor(matchResult);
+    const data = {
+      info: matchInfo,
+      parsed: parsedMatchData,
+      result: matchResult,
+      stats: matchStats,
+      color,
+      gameType,
+    };
+
+    message.channel.send(embed(data));
   },
 };
 
 const getAccountId = async (userName) => {
-  let data;
-  try {
-    data = await api
-      .get('euw1', 'summoner.getBySummonerName', userName)
-      .catch(error => console.error(error));
-  } catch (error) {
-    console.error(error);
-  }
-  console.log(`${data.name}'s summoner id is ${data.accountId}.`);
-
+  const data = await api.get('euw1', 'summoner.getBySummonerName', userName);
   return data.accountId;
 };
 
 const getMatchInfo = async (accountId) => {
-  try {
-    const data = await api.get('euw1', 'match.getMatchlist', accountId);
-    return data.matches;
-  } catch (error) {
-    console.error(error);
-  }
+  const data = await api.get('euw1', 'match.getMatchlist', accountId);
+  return data.matches;
 };
 
-const getMatchResult = async (gameId, accountId) => {
-  const gameData = await api.get('euw1', 'match.getMatch', gameId);
+const getGameType = matchInfo => gameTypes[matchInfo[0].queue];
 
-  const participantId = gameData.participantIdentities.find(
-    participantIdentities => participantIdentities.player.accountId === accountId,
-  ).participantId;
-  const teamId = gameData.participants.find(participant => participant.participantId === 7).teamId;
-  const result = gameData.teams.find(team => team.teamId === teamId).win;
+const getMatchData = async gameId => await api.get('euw1', 'match.getMatch', gameId);
+
+const getParticipantId = (accountId, matchData) => matchData.participantIdentities.find(
+  participantIdentities => participantIdentities.player.accountId === accountId,
+).participantId;
+
+const getTeamId = (participantId, matchData) => matchData.participants.find(participant => participant.participantId === participantId).teamId;
+
+const getMatchResult = (teamId, matchData) => {
+  const result = matchData.teams.find(team => team.teamId === teamId).win;
   return result === 'Fail' ? 'Lost' : result;
 };
 
-const parseMatchData = async (matchData) => {
+const getMatchStats = (participantId, matchData) => matchData.participants.find(participant => participant.participantId === participantId).stats;
+
+const getRichEmbedColor = result => (result === 'Lost' ? '#ab000d' : '#00701a');
+
+const getParsedMatchData = (matchData) => {
   matchData = Object.keys(matchData).map(k => matchData[k]);
 
   const matchResult = [];

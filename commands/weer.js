@@ -7,7 +7,7 @@ module.exports = {
   description: 'Toont het huidige weer in de opgegeven stad.',
   run: (message, args) => {
     const { WEER_API_URL: url } = process.env;
-    const locatie = args[1] !== undefined ? `${args[0]} ${args[1]}` : args[0];
+    const locatie = args.join(' ');
     const embed = response => new Discord.RichEmbed()
       .setColor('#FFFF00')
       .setTitle(`Het weer in ${response.plaats}`)
