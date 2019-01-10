@@ -15,9 +15,7 @@ const embed = data => new Discord.RichEmbed()
   .setColor(data.color)
   .setTitle(data.type)
 // .setAuthor(summonerName)
-  .setThumbnail(
-    `http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/${data.parsed.champion}.png`,
-  )
+  .setThumbnail(data.image)
   .addField('Duration', `${data.duration}`)
   .addField('Champion', `${data.parsed.champion}`)
   .addField('K/D/A', `${data.stats.kills} /  ${data.stats.deaths} / ${data.stats.assists}`)
@@ -43,6 +41,7 @@ module.exports = {
     const matchInfo = await getMatchInfo(accountId);
     const gameType = getGameType(matchInfo);
     const parsedMatchData = getParsedMatchData(matchInfo);
+    const championImageUrl = getChampionImageUrl(parsedMatchData.champion);
     const matchData = await getMatchData(parsedMatchData.gameId);
     const gameDuration = getGameDuration(matchData);
     const participantId = getParticipantId(accountId, matchData);
@@ -57,8 +56,11 @@ module.exports = {
       stats: matchStats,
       type: gameType,
       duration: gameDuration,
+      image: championImageUrl,
       color,
     };
+
+    console.log(data.image);
 
     message.channel.send(embed(data));
   },
@@ -85,6 +87,10 @@ const getGameDuration = gameData => `${
 }:${
   gameData.gameDuration % 60 < 10 ? `0${gameData.gameDuration % 60}` : gameData.gameDuration % 60
 }`;
+
+const getChampionImageUrl = champName => `http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/${champName
+  .replace(/'/, '')
+  .capitalize()}.png`;
 
 const getParticipantId = (accountId, matchData) => matchData.participantIdentities.find(
   participantIdentities => participantIdentities.player.accountId === accountId,
@@ -114,4 +120,8 @@ const getParsedMatchData = (matchData) => {
   }
 
   return matchResult[0];
+};
+
+String.prototype.capitalize = function () {
+  return this.charAt(0).toUpperCase() + this.slice(1).toLowerCase();
 };
