@@ -60,8 +60,6 @@ module.exports = {
       color,
     };
 
-    console.log(data.image);
-
     message.channel.send(embed(data));
   },
 };
