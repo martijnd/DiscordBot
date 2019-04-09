@@ -9,6 +9,7 @@ const gameTypes = {
   430: 'Normal Blind Pick',
   440: 'Ranked Flex',
   450: 'ARAM',
+  900: 'RANDOM URF',
 };
 
 const embed = data => new Discord.RichEmbed()
@@ -75,7 +76,6 @@ const getMatchInfo = async (accountId) => {
 };
 
 const getGameType = matchInfo => gameTypes[matchInfo[0].queue];
-
 const getMatchData = async gameId => await api.get('euw1', 'match.getMatch', gameId);
 
 const getGameDuration = gameData => `${
